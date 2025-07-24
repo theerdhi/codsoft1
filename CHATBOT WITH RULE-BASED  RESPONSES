@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule-Based Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 450px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .user-bubble {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            margin-right: 10px;
+        }
+
+        .send-button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            color: #666;
+            font-style: italic;
+            max-width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 Rule-Based Chatbot
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <div class="message-bubble bot-bubble">
+                    Hello! I'm a rule-based chatbot. I can help you with greetings, weather questions, time queries, jokes, and general conversation. What would you like to talk about?
+                </div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userInput" class="input-field" placeholder="Type your message here..." maxlength="200">
+            <button id="sendButton" class="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        class RuleBasedChatbot {
+            constructor() {
+                this.rules = {
+                    greetings: {
+                        patterns: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'],
+                        responses: [
+                            'Hello! How can I help you today?',
+                            'Hi there! What would you like to know?',
+                            'Hey! Great to see you!',
+                            'Greetings! How are you doing?'
+                        ]
+                    },
+                    farewell: {
+                        patterns: ['bye', 'goodbye', 'see you', 'farewell', 'take care', 'see you later'],
+                        responses: [
+                            'Goodbye! Have a great day!',
+                            'See you later! Take care!',
+                            'Farewell! It was nice talking to you!',
+                            'Bye! Come back anytime!'
+                        ]
+                    },
+                    weather: {
+                        patterns: ['weather', 'temperature', 'hot', 'cold', 'rain', 'sunny', 'cloudy'],
+                        responses: [
+                            'I wish I could check the weather for you, but I don\'t have access to current weather data.',
+                            'For accurate weather information, I recommend checking a weather app or website.',
+                            'Weather can be quite unpredictable! What\'s it like where you are?'
+                        ]
+                    },
+                    time: {
+                        patterns: ['time', 'clock', 'hour', 'minute', 'what time'],
+                        responses: [
+                            The current time is: ${new Date().toLocaleTimeString()},
+                            Right now it's ${new Date().toLocaleTimeString()},
+                            The time is ${new Date().toLocaleTimeString()}
+                        ]
+                    },
+                    jokes: {
+                        patterns: ['joke', 'funny', 'laugh', 'humor', 'make me laugh'],
+                        responses: [
+                            'Why don\'t scientists trust atoms? Because they make up everything!',
+                            'I told my wife she was drawing her eyebrows too high. She looked surprised.',
+                            'Why don\'t eggs tell jokes? They\'d crack each other up!',
+                            'What do you call a fake noodle? An impasta!',
+                            'Why did the scarecrow win an award? He was outstanding in his field!'
+                        ]
+                    },
+                    help: {
+                        patterns: ['help', 'what can you do', 'commands', 'assistance'],
+                        responses: [
+                            'I can help with: greetings, weather questions, telling time, jokes, and general conversation!',
+                            'Try asking me about the weather, time, or ask me to tell you a joke!',
+                            'I\'m here to chat! Ask me anything or say hello!'
+                        ]
+                    },
+                    name: {
+                        patterns: ['what is your name', 'who are you', 'your name'],
+                        responses: [
+                            'I\'m a rule-based chatbot! I don\'t have a specific name, but you can call me Bot.',
+                            'I\'m your friendly chatbot assistant!',
+                            'I\'m a simple rule-based AI designed to chat with you!'
+                        ]
+                    },
+                    thanks: {
+                        patterns: ['thank you', 'thanks', 'appreciate'],
+                        responses: [
+                            'You\'re welcome!',
+                            'Happy to help!',
+                            'No problem at all!',
+                            'Glad I could assist!'
+                        ]
+                    },
+                    howAreYou: {
+                        patterns: ['how are you', 'how do you feel', 'are you okay'],
+                        responses: [
+                            'I\'m doing great! Thanks for asking. How are you?',
+                            'I\'m functioning perfectly! How about you?',
+                            'All systems running smoothly! How\'s your day going?'
+                        ]
+                    }
+                };
+
+                this.defaultResponses = [
+                    'I\'m not sure I understand. Could you rephrase that?',
+                    'That\'s interesting! Can you tell me more?',
+                    'I don\'t have a specific response for that, but I\'m here to chat!',
+                    'Hmm, I\'m still learning. Try asking me about the weather, time, or request a joke!',
+                    'I didn\'t quite catch that. Feel free to ask me anything!'
+                ];
+
+                this.chatMessages = document.getElementById('chatMessages');
+                this.userInput = document.getElementById('userInput');
+                this.sendButton = document.getElementById('sendButton');
+
+                this.init();
+            }
+
+            init() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+                this.userInput.focus();
+            }
+
+            sendMessage() {
+                const message = this.userInput.value.trim();
+                if (!message) return;
+
+                this.addMessage(message, 'user');
+                this.userInput.value = '';
+                this.sendButton.disabled = true;
+
+                this.showTypingIndicator();
+
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    const response = this.generateResponse(message);
+                    this.addMessage(response, 'bot');
+                    this.sendButton.disabled = false;
+                    this.userInput.focus();
+                }, 1000);
+            }
+
+            addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = message ${sender}-message;
+
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = message-bubble ${sender}-bubble;
+                bubbleDiv.textContent = text;
+
+                messageDiv.appendChild(bubbleDiv);
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message bot-message';
+                typingDiv.id = 'typing-indicator';
+
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'typing-indicator';
+                bubbleDiv.textContent = 'Bot is typing...';
+
+                typingDiv.appendChild(bubbleDiv);
+                this.chatMessages.appendChild(typingDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            generateResponse(input) {
+                const normalizedInput = input.toLowerCase().trim();
+
+                for (const [category, rule] of Object.entries(this.rules)) {
+                    for (const pattern of rule.patterns) {
+                        if (normalizedInput.includes(pattern)) {
+                            return this.getRandomResponse(rule.responses);
+                        }
+                    }
+                }
+
+                return this.getRandomResponse(this.defaultResponses);
+            }
+
+            getRandomResponse(responses) {
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new RuleBasedChatbot();
+        });
+    </script>
+</body>
+</html>
